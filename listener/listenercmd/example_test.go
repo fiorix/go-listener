@@ -12,8 +12,7 @@ func Example() {
 	cmd := &cobra.Command{
 		Use: "hello",
 		Run: func(cmd *cobra.Command, args []string) {
-			opts := conf.Options()
-			ln, err := listener.New(":8888", opts...)
+			ln, err := listener.New(conf.ListenAddr, conf.Options()...)
 			if err != nil {
 				panic(err)
 			}
