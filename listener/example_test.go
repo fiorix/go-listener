@@ -8,7 +8,7 @@ import (
 	"github.com/fiorix/go-listener/listener"
 )
 
-func ExampleListener() {
+func Example() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintln(w, "hello, world")
 	})
@@ -20,7 +20,7 @@ func ExampleListener() {
 	http.Serve(ln, nil)
 }
 
-func ExampleListenerTLS() {
+func ExampleTLS() {
 	opts := []listener.Option{
 		listener.FastOpen(),
 		listener.TLS("cert.pem", "key.pem"),
@@ -31,10 +31,10 @@ func ExampleListenerTLS() {
 		panic(err)
 	}
 	defer ln.Close()
-	// ...
+	// http.Serve(ln, nil)...
 }
 
-func ExampleListenerLetsEncrypt() {
+func ExampleLetsEncrypt() {
 	opts := []listener.Option{
 		listener.FastOpen(),
 		listener.LetsEncrypt(
@@ -50,5 +50,5 @@ func ExampleListenerLetsEncrypt() {
 		panic(err)
 	}
 	defer ln.Close()
-	// ...
+	// http.Serve(ln, nil)...
 }
