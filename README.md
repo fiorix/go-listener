@@ -8,5 +8,5 @@ This is an implementation of the [net.Listener](https://golang.org/pkg/net/#List
 * TCP fast open [RFC 7413](https://tools.ietf.org/html/rfc7413)
 * TLS configuration with optional client authentication
 * Automatic TLS configuration using [letsencrypt.org](https://letsencrypt.org)
-* Command line configuration via environment variables, using [envconfig](github.com/kelseyhightower/envconfig)
+* Command line configuration via environment variables, using [envconfig](https://github.com/kelseyhightower/envconfig)
 * Command line configuration for [cobra](https://github.com/spf13/cobra)
