@@ -1,10 +1,9 @@
 package listenercmd
 
 import (
+	"flag"
 	"os"
 	"testing"
-
-	"github.com/spf13/pflag"
 )
 
 func TestConfig(t *testing.T) {
@@ -19,24 +18,24 @@ func TestConfig(t *testing.T) {
 
 func TestConfigFlags(t *testing.T) {
 	c := NewConfig()
-	fs := pflag.NewFlagSet("", pflag.ContinueOnError)
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
 	c.AddFlags(fs)
 	err := fs.Parse([]string{"--listen-addr=:9999"})
 	if err != nil {
 		t.Fatal(err)
 	}
-	v, err := fs.GetString("listen-addr")
-	if err != nil {
-		t.Fatal(err)
+	f := fs.Lookup("listen-addr")
+	if f == nil {
+		t.Fatal("missing listen-addr flag")
 	}
-	if v != ":9999" {
+	if v := f.Value.String(); v != ":9999" {
 		t.Fatalf("unexpected listen addr: want :8888, have %q", v)
 	}
 }
 
 func TestConfigOptions(t *testing.T) {
 	c := NewConfig()
-	fs := pflag.NewFlagSet("", pflag.ContinueOnError)
+	fs := flag.NewFlagSet("", flag.ContinueOnError)
 	c.AddFlags(fs)
 	err := fs.Parse([]string{
 		"--tcp-naggle",

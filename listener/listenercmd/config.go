@@ -1,12 +1,12 @@
-// Package listenercmd provides env and pflag configuration for go-listener.
+// Package listenercmd provides env and flag configuration for go-listener.
 package listenercmd
 
 import (
 	"crypto/tls"
+	"flag"
 	"strings"
 
 	"github.com/kelseyhightower/envconfig"
-	"github.com/spf13/pflag"
 
 	"github.com/fiorix/go-listener/listener"
 )
@@ -35,7 +35,7 @@ func NewConfig(prefixes ...string) *Config {
 }
 
 // AddFlags adds Config options to the given FlagSet.
-func (c *Config) AddFlags(fs *pflag.FlagSet) {
+func (c *Config) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.ListenAddr, "listen-addr", c.ListenAddr, "address in form of [ip]:port to listen on")
 	fs.BoolVar(&c.Naggle, "tcp-naggle", c.Naggle, "enable tcp nagle's algorithm")
 	fs.BoolVar(&c.FastOpen, "tcp-fast-open", c.FastOpen, "enable tcp fast open")
