@@ -4,12 +4,13 @@ package listener
 import (
 	"crypto/tls"
 	"crypto/x509"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net"
 	"time"
 
-	"rsc.io/letsencrypt"
+	"golang.org/x/crypto/acme/autocert"
 
 	"github.com/fiorix/go-listener/listener/fastopen"
 )
@@ -45,7 +46,7 @@ func TLS(certFile, keyFile string) Option {
 	return func(c *config) error {
 		pair, err := tls.LoadX509KeyPair(certFile, keyFile)
 		if err != nil {
-			return fmt.Errorf("cert/key: %v", err)
+			return fmt.Errorf("listener: cert/key failed: %v", err)
 		}
 		if c.tls == nil {
 			c.tls = &tls.Config{}
@@ -57,33 +58,31 @@ func TLS(certFile, keyFile string) Option {
 
 // LetsEncrypt configures automatic TLS certificates using letsencrypt.org.
 //
-// The cache file is used to store the certificate retrieved from LetsEncrypt
-// and reuse on server restarts. If not specified, "letsencrypt.cache" is used.
+// The cache dir is used to store certificates retrieved from LetsEncrypt
+// and reuse on server restarts. If not specified, "." is used.
 //
-// If an email is not provided for registration with LetsEncrypt, it is
-// registered anonymously.
+// The email parameter is optionally used for registration with LetsEncrypt
+// to notify about certificate problems. If not set, certificates are
+// obtained anonymously.
 //
-// An optional list of hosts can be configured to limit the hosts served
-// by the listener. All hosts are allowed otherwise.
+// The hosts parameter must define a list of allowed hostnames to obtain
+// certificates for with LetsEncrypt.
 //
 // By calling this function you are accepting LetsEncrypt's TOS.
 // https://letsencrypt.org/repository/
-func LetsEncrypt(cacheFile, email string, hosts ...string) Option {
+func LetsEncrypt(cacheDir, email string, hosts ...string) Option {
 	return func(c *config) error {
-		var err error
-		var m letsencrypt.Manager
-		m.SetHosts(hosts)
-		if email != "" {
-			err = m.Register(email, nil)
-			if err != nil {
-				return err
-			}
+		if cacheDir == "" {
+			cacheDir = "."
 		}
-		if cacheFile == "" {
-			cacheFile = "letsencrypt.cache"
+		if len(hosts) == 0 {
+			return errors.New("listener: no hosts configured")
 		}
-		if err = m.CacheFile(cacheFile); err != nil {
-			return err
+		m := autocert.Manager{
+			Prompt:     autocert.AcceptTOS,
+			Email:      email,
+			Cache:      autocert.DirCache(cacheDir),
+			HostPolicy: autocert.HostWhitelist(hosts...),
 		}
 		if c.tls == nil {
 			c.tls = &tls.Config{}
@@ -98,7 +97,7 @@ func TLSClientAuth(cacertFile string, authType tls.ClientAuthType) Option {
 	return func(c *config) error {
 		cacert, err := ioutil.ReadFile(cacertFile)
 		if err != nil {
-			return fmt.Errorf("ca cert: %v", err)
+			return fmt.Errorf("listener: ca cert: %v", err)
 		}
 		certpool := x509.NewCertPool()
 		certpool.AppendCertsFromPEM(cacert)

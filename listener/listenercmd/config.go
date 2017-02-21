@@ -13,18 +13,18 @@ import (
 
 // Config is the listener configuration for command line tools.
 type Config struct {
-	ListenAddr           string `envconfig:"LISTEN_ADDR"`
-	Naggle               bool   `envconfig:"TCP_NAGGLE"`
-	FastOpen             bool   `envconfig:"TCP_FAST_OPEN"`
-	TLS                  bool   `envconfig:"TLS"`
-	TLSCACertFile        string `envconfig:"TLS_CA_CERT_FILE" default:"cacert.pem"`
-	TLSClientAuth        string `envconfig:"TLS_CLIENT_AUTH"`
-	TLSCertFile          string `envconfig:"TLS_CERT_FILE" default:"cert.pem"`
-	TLSKeyFile           string `envconfig:"TLS_KEY_FILE" default:"key.pem"`
-	LetsEncrypt          bool   `envconfig:"LETSENCRYPT"`
-	LetsEncryptCacheFile string `envconfig:"LETSENCRYPT_CACHE_FILE" default:"letsencrypt.cache"`
-	LetsEncryptEmail     string `envconfig:"LETSENCRYPT_EMAIL"`
-	LetsEncryptHosts     string `envconfig:"LETSENCRYPT_HOSTS"`
+	ListenAddr          string `envconfig:"LISTEN_ADDR"`
+	Naggle              bool   `envconfig:"TCP_NAGGLE"`
+	FastOpen            bool   `envconfig:"TCP_FAST_OPEN"`
+	TLS                 bool   `envconfig:"TLS"`
+	TLSCACertFile       string `envconfig:"TLS_CA_CERT_FILE" default:"cacert.pem"`
+	TLSClientAuth       string `envconfig:"TLS_CLIENT_AUTH"`
+	TLSCertFile         string `envconfig:"TLS_CERT_FILE" default:"cert.pem"`
+	TLSKeyFile          string `envconfig:"TLS_KEY_FILE" default:"key.pem"`
+	LetsEncrypt         bool   `envconfig:"LETSENCRYPT"`
+	LetsEncryptCacheDir string `envconfig:"LETSENCRYPT_CACHE_DIR" default:"."`
+	LetsEncryptEmail    string `envconfig:"LETSENCRYPT_EMAIL"`
+	LetsEncryptHosts    string `envconfig:"LETSENCRYPT_HOSTS"`
 }
 
 // NewConfig creates a Config with values from environment variables.
@@ -47,7 +47,7 @@ func (c *Config) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.LetsEncrypt, "letsencrypt", c.LetsEncrypt, "enable automatic tls using letsencrypt.org")
 	fs.StringVar(&c.LetsEncryptEmail, "letsencrypt-email", c.LetsEncryptEmail, "optional email to register with letsencrypt (default is anonymous)")
 	fs.StringVar(&c.LetsEncryptHosts, "letsencrypt-hosts", c.LetsEncryptHosts, "comma separated list of hosts for the certificate (any otherwise)")
-	fs.StringVar(&c.LetsEncryptCacheFile, "letsencrypt-cache-file", c.LetsEncryptCacheFile, "letsencrypt cache file (for storing cert data)")
+	fs.StringVar(&c.LetsEncryptCacheDir, "letsencrypt-cache-dir", c.LetsEncryptCacheDir, "letsencrypt cache dir (for storing certs)")
 }
 
 var clientAuthType = map[string]tls.ClientAuthType{
@@ -75,7 +75,7 @@ func (c *Config) Options() []listener.Option {
 	}
 	if c.LetsEncrypt {
 		o = append(o, listener.LetsEncrypt(
-			c.LetsEncryptCacheFile,
+			c.LetsEncryptCacheDir,
 			c.LetsEncryptEmail,
 			strings.Split(c.LetsEncryptHosts, ",")...,
 		))

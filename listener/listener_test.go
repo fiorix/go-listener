@@ -63,7 +63,11 @@ func TestTLS(t *testing.T) {
 
 func TestLetsEncrypt(t *testing.T) {
 	c := &config{}
-	err := LetsEncrypt("testdata/autocert.cache", "")(c)
+	err := LetsEncrypt("", "")(c)
+	if err == nil {
+		t.Fatal("instance created without host config")
+	}
+	err = LetsEncrypt("testdata/", "root@localhost", "localhost")(c)
 	if err != nil {
 		t.Fatal(err)
 	}
