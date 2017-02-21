@@ -47,7 +47,7 @@ func (c *Config) AddFlags(fs *flag.FlagSet) {
 	fs.BoolVar(&c.LetsEncrypt, "letsencrypt", c.LetsEncrypt, "enable automatic tls using letsencrypt.org")
 	fs.StringVar(&c.LetsEncryptEmail, "letsencrypt-email", c.LetsEncryptEmail, "optional email to register with letsencrypt (default is anonymous)")
 	fs.StringVar(&c.LetsEncryptHosts, "letsencrypt-hosts", c.LetsEncryptHosts, "comma separated list of hosts for the certificate (any otherwise)")
-	fs.StringVar(&c.LetsEncryptCacheFile, "letsencrypt-cache-file", "letsencrypt.cache", "letsencrypt cache file (for storing cert data)")
+	fs.StringVar(&c.LetsEncryptCacheFile, "letsencrypt-cache-file", c.LetsEncryptCacheFile, "letsencrypt cache file (for storing cert data)")
 }
 
 var clientAuthType = map[string]tls.ClientAuthType{
