@@ -1,6 +1,10 @@
+//+build cobra
+
 package listenercmd_test
 
 import (
+	"flag"
+
 	"github.com/spf13/cobra"
 
 	"github.com/fiorix/go-listener/listener"
@@ -20,6 +24,8 @@ func Example() {
 			// ...
 		},
 	}
-	conf.AddFlags(cmd.Flags())
+	var f flag.FlagSet
+	conf.AddFlags(&f)
+	cmd.Flags().AddGoFlagSet(&f)
 	cmd.Execute()
 }
