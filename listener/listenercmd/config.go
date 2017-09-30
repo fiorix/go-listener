@@ -16,6 +16,7 @@ type Config struct {
 	ListenAddr          string `envconfig:"LISTEN_ADDR"`
 	Naggle              bool   `envconfig:"TCP_NAGGLE"`
 	FastOpen            bool   `envconfig:"TCP_FAST_OPEN"`
+	HTTP2               bool   `envconfig:"HTTP2"`
 	TLS                 bool   `envconfig:"TLS"`
 	TLSCACertFile       string `envconfig:"TLS_CA_CERT_FILE" default:"cacert.pem"`
 	TLSClientAuth       string `envconfig:"TLS_CLIENT_AUTH"`
@@ -39,6 +40,7 @@ func (c *Config) AddFlags(fs *flag.FlagSet) {
 	fs.StringVar(&c.ListenAddr, "listen-addr", c.ListenAddr, "address in form of [ip]:port to listen on")
 	fs.BoolVar(&c.Naggle, "tcp-naggle", c.Naggle, "enable tcp nagle's algorithm")
 	fs.BoolVar(&c.FastOpen, "tcp-fast-open", c.FastOpen, "enable tcp fast open")
+	fs.BoolVar(&c.HTTP2, "http2", c.HTTP2, "enable http/2 when tls is enabled")
 	fs.BoolVar(&c.TLS, "tls", c.TLS, "enable tls (requires cert file and key file)")
 	fs.StringVar(&c.TLSCACertFile, "tls-ca-cert-file", c.TLSCACertFile, "ca certificate file (for client auth)")
 	fs.StringVar(&c.TLSClientAuth, "tls-client-auth", c.TLSClientAuth, "client auth policy: RequestClientCert, RequireAnyClientCert, VerifyClientCertIfGiven, RequireAndVerifyClientCert")
@@ -65,6 +67,9 @@ func (c *Config) Options() []listener.Option {
 	}
 	if c.FastOpen {
 		o = append(o, listener.FastOpen())
+	}
+	if c.HTTP2 {
+		o = append(o, listener.HTTP2())
 	}
 	if c.TLS {
 		o = append(o, listener.TLS(c.TLSCertFile, c.TLSKeyFile))

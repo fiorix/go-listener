@@ -40,6 +40,7 @@ func TestConfigOptions(t *testing.T) {
 	err := fs.Parse([]string{
 		"--tcp-naggle",
 		"--tcp-fast-open",
+		"--http2",
 		"--tls",
 		"--tls-cert-file=../testdata/cert.pem",
 		"--tls-key-file=../testdata/key.pem",
@@ -50,7 +51,7 @@ func TestConfigOptions(t *testing.T) {
 		t.Fatal(err)
 	}
 	o := c.Options()
-	if len(o) != 5 {
-		t.Fatalf("unexpected opts count: want 5, have %d", len(o))
+	if len(o) != 6 {
+		t.Fatalf("unexpected opts count: want 6, have %d", len(o))
 	}
 }
