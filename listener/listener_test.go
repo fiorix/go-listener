@@ -4,9 +4,12 @@ import (
 	"crypto/tls"
 	"io"
 	"net"
+	"net/http"
 	"strconv"
 	"testing"
 	"time"
+
+	"golang.org/x/net/http2"
 )
 
 func TestFastOpen(t *testing.T) {
@@ -167,5 +170,43 @@ func TestListenerAccept(t *testing.T) {
 	case err = <-errc:
 		t.Fatal("accept failed:", err)
 	default:
+	}
+}
+
+func TestListenerHTTP2(t *testing.T) {
+	ln, err := New("",
+		HTTP2(),
+		TLS("testdata/cert.pem", "testdata/key.pem"),
+	)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer ln.Close()
+	srv := &http.Server{
+		TLSConfig: ln.TLSConfig(),
+		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusOK)
+		}),
+	}
+	go srv.Serve(ln)
+	srvURL := "https://" + ln.Addr().String()
+	req, err := http.NewRequest("GET", srvURL, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	cli := &http.Client{
+		Transport: &http2.Transport{
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+	resp, err := cli.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.Proto != "HTTP/2.0" {
+		t.Fatal("unexpected proto:", resp.Proto)
 	}
 }

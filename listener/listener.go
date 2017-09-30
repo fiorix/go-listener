@@ -110,8 +110,29 @@ func TLSClientAuth(cacertFile string, authType tls.ClientAuthType) Option {
 	}
 }
 
-// New creates and initializes a new TCP listener.
-func New(addr string, opts ...Option) (net.Listener, error) {
+// HTTP2 configures TLS listeners to set the "h2" option for net/http to
+// to serve HTTP/2 over TLS. This option can only be used when combined
+// with other TLS settings, either using local key/cert or LetsEncrypt.
+func HTTP2() Option {
+	return func(c *config) error {
+		if c.tls == nil {
+			c.tls = &tls.Config{}
+		}
+		c.tls.NextProtos = append(c.tls.NextProtos, "h2")
+		return nil
+	}
+}
+
+// TCPListener implements the net.Listener interface. Listens on a TCP port
+// that is configured with options from this package. e.g. fast-open, etc.
+type TCPListener struct {
+	net.Listener
+	tlsConfig *tls.Config
+}
+
+// New creates and initializes a new TCP listener that is ready to accept
+// client connections.
+func New(addr string, opts ...Option) (*TCPListener, error) {
 	var err error
 	c := &config{}
 	for _, o := range opts {
@@ -124,9 +145,9 @@ func New(addr string, opts ...Option) (net.Listener, error) {
 		return nil, err
 	}
 	if c.tls == nil {
-		return ln, nil
+		return &TCPListener{ln, nil}, nil
 	}
-	return tls.NewListener(ln, c.tls), nil
+	return &TCPListener{tls.NewListener(ln, c.tls), c.tls}, nil
 }
 
 func listen(addr string, naggle, fastOpen bool) (net.Listener, error) {
@@ -146,6 +167,11 @@ func listen(addr string, naggle, fastOpen bool) (net.Listener, error) {
 		NoDelay:     !naggle,
 	}
 	return ln, nil
+}
+
+// TLSConfig returns the TLS configuration for the TCP listener.
+func (ln *TCPListener) TLSConfig() *tls.Config {
+	return ln.tlsConfig
 }
 
 // tcpKeepAliveListener sets TCP keep-alive timeouts on accepted
